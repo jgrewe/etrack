@@ -14,6 +14,10 @@ y_factor = 0.81/height  # Einheit m/px
 center = (np.round(x_0 + width/2), np.round(y_0 + height/2))
 center_meter = ((center[0] - x_0) * x_factor, (center[1] - y_0) * y_factor)
 """
+def coordinate_transformation(position,x_0, y_0, x_factor, y_factor):
+        x = (position[0] - x_0) * x_factor
+        y = (position[1] - y_0) * y_factor
+        return (x, y) #in m 
 
 class TrackingResult(object):
     

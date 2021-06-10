@@ -17,7 +17,7 @@ class ImageMarker:
         self._fig.canvas.mpl_connect('button_press_event', self._on_click_event)
         self._fig.canvas.mpl_connect('close_event', self._fig_close_event)
         self._fig.canvas.mpl_connect('key_press_event', self._key_press_event)
-    
+
     def mark_movie(self, filename, frame_number=0):
         if not os.path.exists(filename):
             raise IOError("file %s does not exist!" % filename)
@@ -30,6 +30,7 @@ class ImageMarker:
             print("Reading frame: %i" % frame_counter, end="\r")
             success, frame = video.read()
             frame_counter += 1
+
         if success:
            self._fig.gca().imshow(frame)
         else:
