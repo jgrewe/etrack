@@ -140,13 +140,14 @@ class MarkerTask():
 
 
 if __name__ == "__main__":
+    print("Hello Jan!")
     tank_task = MarkerTask("tank limits", ["bottom left corner", "top left corner", "top right corner", "bottom right corner"], "Mark tank corners")
-    feeder_task = MarkerTask("Feeder positions", list(map(str, range(1, 2))), "Mark feeder positions")
-    tasks = [tank_task, feeder_task]
-    im = ImageMarker(tasks)
-    # vid1 = "2020.12.11_lepto48DLC_resnet50_boldnessDec11shuffle1_200000_labeled.mp4"
-    print(sys.argv[0])
-    print (sys.argv[1])
-    vid1 = sys.argv[1]
-    marker_positions = im.mark_movie(vid1, 10)
+    #feeder_task = MarkerTask("Feeder positions", list(map(str, range(1, 2))), "Mark feeder positions")
+    #tasks = [tank_task, feeder_task]
+    im = ImageMarker([tank_task])
+    vid1 = "/data/personality/secondhome/fischies/lepto_03/position/lepto03_position_2021.06.07_60.mp4"
+    # print(sys.argv[0])
+    # print (sys.argv[1])
+    # vid1 = sys.argv[1]
+    marker_positions = im.mark_movie(vid1, 00)
     print(marker_positions)

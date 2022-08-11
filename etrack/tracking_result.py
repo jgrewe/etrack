@@ -20,7 +20,7 @@ def coordinate_transformation(position,x_0, y_0, x_factor, y_factor):
         return (x, y) #in m 
 
 class TrackingResult(object):
-    
+
     def __init__(self, results_file, x_0=0, y_0= 0, width_pixel=1230, height_pixel=1100, width_meter=0.81, height_meter=0.81) -> None:
         super().__init__()
         if not os.path.exists(results_file):
@@ -109,7 +109,11 @@ class TrackingResult(object):
             bp string: the body part
             [type]: [description]
         """
+        time, x, y, l, bp = self.pixel_positions(scorer, bodypart, framerate, interpolate, min_likelihood)
+        x, y = self._to_meter(x, y)
+        return time, x, y, l, bp
 
+    def pixel_positions(self, scorer=0, bodypart=0, framerate=30, interpolate=True, min_likelihood=0.95):
         if  isinstance(scorer, nb.Number):
             sc = self._scorer[scorer]
         elif isinstance(scorer, str) and scorer in self._scorer:
@@ -123,25 +127,37 @@ class TrackingResult(object):
         else:
             raise ValueError("Bodypart %s is not in dataframe!" % bodypart)
 
-        x = self._data_frame[sc][bp]["x"] if "x" in self._positions else []
-        x = (np.asarray(x) - self.x_0) * self.x_factor
-        y = self._data_frame[sc][bp]["y"] if "y" in self._positions else []
-        y = (np.asarray(y) - self.y_0) * self.y_factor
-        l = self._data_frame[sc][bp]["likelihood"] if "likelihood" in self._positions else []
+        x = np.asarray(self._data_frame[sc][bp]["x"] if "x" in self._positions else [])
+        y = np.asarray(self._data_frame[sc][bp]["y"] if "y" in self._positions else [])
+        l = np.asarray(self._data_frame[sc][bp]["likelihood"] if "likelihood" in self._positions else [])
 
-        time = np.arange(len(self._data_frame))/framerate
-        time2 = time[l > min_likelihood]
-        if len(l[l > min_likelihood]) < 100:
-            print("%s has not datapoints with likelihood larger than %.2f" % (self._file_name, min_likelihood) )
-            return None, None, None, None, None
+        time = np.arange(len(x))/framerate
+        if interpolate:
+            x, y = self.interpolate(time, x, y, l, min_likelihood)
+        return time, x, y, l, bp
+
+    def _to_meter(self, x, y):
+        new_x = (np.asarray(x) - self.x_0) * self.x_factor
+        new_y = (np.asarray(y) - self.y_0) * self.y_factor
+        return new_x, new_y
+
+    def _speed(self, t, x, y):
+        speed = np.sqrt(np.diff(x)**2 + np.diff(y)**2) / np.diff(t)
+        return speed
+
+    def interpolate(self, t, x, y, l, min_likelihood=0.9):
+        time2 = t[l > min_likelihood]
+        if len(l[l > min_likelihood]) < 10:
+            print("%s has less than 10 datapoints with likelihood larger than %.2f" % (self._file_name, min_likelihood) )
+            return None, None
         x2 = x[l > min_likelihood]
         y2 = y[l > min_likelihood]
-        x3 = np.interp(time, time2, x2)
-        y3 = np.interp(time, time2, y2)
-        return time, x3, y3, l, bp
+        x3 = np.interp(t, time2, x2)
+        y3 = np.interp(t, time2, y2)
+        return x3, y3
 
     def plot(self, scorer=0, bodypart=0, threshold=0.9, framerate=30):
-        t, x, y, l, name  = self.position_values(scorer=scorer, bodypart=bodypart, framerate=framerate)
+        t, x, y, l, name  = self.position_values(scorer=scorer, bodypart=bodypart, framerate=framerate, min_likelihood=threshold)
         plt.scatter(x[l > threshold], y[l > threshold], c=t[l > threshold], label=name)
         plt.scatter(self.center_meter[0], self.center_meter[1], marker="*")
         plt.plot(x[l > threshold], y[l > threshold])
@@ -152,7 +168,6 @@ class TrackingResult(object):
         bar.set_label("time [s]")
         plt.legend()
         plt.show()
-        from IPython import embed
 
 
 if __name__ == '__main__':
