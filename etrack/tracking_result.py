@@ -185,13 +185,13 @@ if __name__ == '__main__':
     x3 = np.interp(time, time2, x2)
     y3 = np.interp(time, time2, y2)
 
-
-    fig, axes = plt.subplots(3,1, sharex=True)                                                                                                                                                  
-    axes[0].plot(time, x)    
-    axes[0].plot(time, x3)                                                                                                                                                                   
+    fig, axes = plt.subplots(3,1, sharex=True)
+    axes[0].plot(time, x)
+    axes[0].plot(time, x3)
     axes[1].plot(time, y)
-    axes[1].plot(time, y3)                                                                                                                                                                       
-    axes[2].plot(time, l)                            
+    axes[1].plot(time, y3)
+
+    axes[2].plot(time, l)
     plt.show()
 
     embed()
