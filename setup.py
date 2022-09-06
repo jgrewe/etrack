@@ -5,14 +5,14 @@ VERSION = 0.5
 AUTHOR = "Jan Grewe"
 CONTACT = "jan.grewe@g-node.org"
 CLASSIFIERS = "science"
-DESCRIPTION = "helpers for handling depp lab cut tracking results"
+DESCRIPTION = "Efish tracking helpers for handling tracking data."
 
 README = "README.md"
 with open(README) as f:
     description_text = f.read()
 
 packages = [
-    "etrack",
+    "etrack", "etrack.io"
 ]
 
 install_req = ["h5py", "pandas", "matplotlib", "numpy", "opencv-python"]
