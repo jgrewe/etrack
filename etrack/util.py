@@ -20,3 +20,7 @@ class AnalysisType(Enum):
 
     def __str__(self) -> str:
         return self.name
+
+class PositionType(Enum):
+    Absolute = 0
+    Cropped = 1
