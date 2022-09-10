@@ -32,12 +32,16 @@ class TrackingData(object):
     def original_quality(self):
         return self._orgquality
 
-    def interpolate(self, min_count=10):
+    def interpolate(self, store=True, min_count=10):
         if len(self._x) < min_count:
             print(f"{self._node} data has less than {min_count} data points with sufficient quality!")
             return None
-        self._x = np.interp(self._orgtime, self._time, self._y)
-        self._y = np.interp(self._orgtime, self._time, self._y)
+        x = np.interp(self._orgtime, self._time, self._x)
+        y = np.interp(self._orgtime, self._time, self._y)
+        if store:
+            self._x = x
+            self._y = y
+            self._time = self._orgtime.copy()
 
     @property
     def quality_threshold(self):
@@ -127,7 +131,39 @@ class TrackingData(object):
             self._quality = self._quality[indices]
 
     def positions(self):
+        """Returns the filtered data (if filters have been applied). 
+
+        Returns
+        -------
+        np.ndarray
+            The x-positions
+        np.ndarray
+            The y-positions
+        np.ndarray
+            The time vector
+        np.ndarray
+            The detection quality
+        """
         return self._x, self._y, self._time, self._quality
+
+    def speed(self):
+        """ Returns the agent's speed as a function of time and position. The speed estimation is associated to the time/position between two sample points.
+
+        Returns
+        -------
+        np.ndarray:
+            The time vector.
+        np.ndarray:
+            The speed.
+        tuple of np.ndarray
+            The position
+        """
+        speed = np.sqrt(np.diff(self._x)**2 + np.diff(self._y)**2) / np.diff(self._time)
+        t = self._time[:-1] + np.diff(self._time) / 2
+        x = self._x[:-1] + np.diff(self._x) / 2
+        y = self._y[:-1] + np.diff(self._y) / 2
+
+        return t, speed, (x, y)
 
     def __repr__(self) -> str:
         s = f"Tracking data of node '{self._node}'!"
