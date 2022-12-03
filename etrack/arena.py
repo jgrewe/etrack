@@ -5,7 +5,7 @@ import matplotlib.patches as patches
 from skimage.draw import disk
 
 from .util import RegionShape, AnalysisType, Illumination
-
+from IPython import embed
 
 class Region(object):
 
@@ -29,6 +29,14 @@ class Region(object):
         mask[rr, cc] = 1
 
         return mask
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def inverted_y(self):
+        return self._inverted_y
 
     @property
     def _max_extent(self):
@@ -127,7 +135,7 @@ class Region(object):
         return indices
 
     def time_in_region(self, x, y, time, analysis_type=AnalysisType.Full):
-        """_summary_
+        """Returns the entering and leaving times at which the animal entered and left a region. In case the animal was not observed after entering this region (for example when hidden in a tube) the leaving time is the maximum time entry.
 
         Parameters
         ----------
@@ -148,7 +156,7 @@ class Region(object):
         indices = self.points_in_region(x, y, analysis_type)
         if len(indices) == 0:
             return np.array([]), np.array([])
-
+  
         diffs = np.diff(indices)
         if len(diffs) == sum(diffs):
             entering = [time[indices[0]]]
@@ -199,10 +207,9 @@ class Arena(Region):
             region = Region(origin, extent, name=name, region_shape=shape_type, parent=self)
         else:
             region._parent = self
-        if self.fits(region):
-            self.regions[name] = region
-        else:
-            Warning(f"Region {region} fits not! Not added to the list of regions!")
+        if ~self.fits(region):
+            print(f"Warning! Region {region.name} with size {region.position} does fit into {self.name} with size {self.position}!")
+        self.regions[name] = region
 
     def remove_region(self, name):
         if name in self.regions:
@@ -217,9 +224,13 @@ class Arena(Region):
             axis = fig.add_subplot(111)
         axis.add_patch(self.patch())
         axis.set_xlim([self._origin[0], self._max_extent[0]])
-        axis.set_ylim([self._origin[1], self._max_extent[1]])
+
+        if self.inverted_y:
+            axis.set_ylim([self._max_extent[1], self._origin[1]])
+        else:
+            axis.set_ylim([self._origin[1], self._max_extent[1]])
         for r in self.regions:
-            axis.add_patch(r.patch())
+            axis.add_patch(self.regions[r].patch())
         return axis
 
     def region_vector(self, x, y):
@@ -249,6 +260,13 @@ class Arena(Region):
             indices = self.regions[r].points_in_region(x, y)
             tmp[r] = indices
         return tmp
+
+    def __getitem__(self, key):
+        if isinstance(key, (str)):
+            return self.regions[key]
+        else:
+            return self.regions[self.regions.keys()[key]]
+
 
 if __name__ == "__main__":
     a = Arena((0, 0), (1024, 768), name="arena", arena_shape=RegionShape.Rectangular)
