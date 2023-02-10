@@ -8,9 +8,21 @@ class TrackingData(object):
     Using the 'quality_threshold', 'temporal_limits', or the 'position_limits' data can be filtered (see filter_tracks function).
     The 'interpolate' function allows to fill up the gaps that be result from filtering with linearly interpolated data points.
 
-    More may follow... 
+    More may follow...
     """
-    def __init__(self, x, y, time, quality, node="", fps=None, quality_threshold=None, temporal_limits=None, position_limits=None) -> None:
+
+    def __init__(
+        self,
+        x,
+        y,
+        time,
+        quality,
+        node="",
+        fps=None,
+        quality_threshold=None,
+        temporal_limits=None,
+        position_limits=None,
+    ) -> None:
         self._orgx = x
         self._orgy = y
         self._orgtime = time
@@ -35,11 +47,13 @@ class TrackingData(object):
 
     def interpolate(self, start_time=None, end_time=None, min_count=5):
         if len(self._x) < min_count:
-            print(f"{self._node} data has less than {min_count} data points with sufficient quality ({len(self._x)})!")
+            print(
+                f"{self._node} data has less than {min_count} data points with sufficient quality ({len(self._x)})!"
+            )
             return None, None, None
         start = self._time[0] if start_time is None else start_time
         end = self._time[-1] if end_time is None else end_time
-        time = np.arange(start, end, 1./self._fps)
+        time = np.arange(start, end, 1.0 / self._fps)
         x = np.interp(time, self._time, self._x)
         y = np.interp(time, self._time, self._y)
 
@@ -56,7 +70,7 @@ class TrackingData(object):
         Parameters
         ----------
         new_threshold : float
-            
+
         """
         self._threshold = new_threshold
 
@@ -77,8 +91,12 @@ class TrackingData(object):
         ------
         ValueError, if new_value is not a 4-tuple
         """
-        if new_limits is not None and not (isinstance(new_limits, (tuple, list)) and len(new_limits) == 4):
-            raise ValueError(f"The new_limits vector must be a 4-tuple of the form (x, y, width, height)")
+        if new_limits is not None and not (
+            isinstance(new_limits, (tuple, list)) and len(new_limits) == 4
+        ):
+            raise ValueError(
+                f"The new_limits vector must be a 4-tuple of the form (x, y, width, height)"
+            )
         self._position_limits = new_limits
 
     @property
@@ -94,8 +112,12 @@ class TrackingData(object):
         new_limits : 2-tuple
             The new limits in the form (start, end) given in seconds.
         """
-        if new_limits is not None and not (isinstance(new_limits, (tuple, list)) and len(new_limits) == 2):
-            raise ValueError(f"The new_limits vector must be a 2-tuple of the form (start, end). ")
+        if new_limits is not None and not (
+            isinstance(new_limits, (tuple, list)) and len(new_limits) == 2
+        ):
+            raise ValueError(
+                f"The new_limits vector must be a 2-tuple of the form (start, end). "
+            )
         self._time_limits = new_limits
 
     def filter_tracks(self, align_time=True):
@@ -115,16 +137,22 @@ class TrackingData(object):
         if self.position_limits is not None:
             x_max = self.position_limits[0] + self.position_limits[2]
             y_max = self.position_limits[1] + self.position_limits[3]
-            indices = np.where((self._x >= self.position_limits[0]) & (self._x < x_max) &
-                               (self._y >= self.position_limits[1]) & (self._y < y_max))
+            indices = np.where(
+                (self._x >= self.position_limits[0])
+                & (self._x < x_max)
+                & (self._y >= self.position_limits[1])
+                & (self._y < y_max)
+            )
             self._x = self._x[indices]
             self._y = self._y[indices]
             self._time = self._time[indices] - self._time[0] if align_time else 0.0
             self._quality = self._quality[indices]
 
         if self.temporal_limits is not None:
-            indices = np.where((self._time >= self.temporal_limits[0]) &
-                               (self._time < self.temporal_limits[1]))
+            indices = np.where(
+                (self._time >= self.temporal_limits[0])
+                & (self._time < self.temporal_limits[1])
+            )
             self._x = self._x[indices]
             self._y = self._y[indices]
             self._time = self._time[indices]
@@ -138,7 +166,7 @@ class TrackingData(object):
             self._quality = self._quality[indices]
 
     def positions(self):
-        """Returns the filtered data (if filters have been applied). 
+        """Returns the filtered data (if filters have been applied).
 
         Returns
         -------
@@ -154,7 +182,7 @@ class TrackingData(object):
         return self._x, self._y, self._time, self._quality
 
     def speed(self):
-        """ Returns the agent's speed as a function of time and position. The speed estimation is associated to the time/position between two sample points.
+        """Returns the agent's speed as a function of time and position. The speed estimation is associated to the time/position between two sample points.
 
         Returns
         -------
@@ -165,7 +193,9 @@ class TrackingData(object):
         tuple of np.ndarray
             The position
         """
-        speed = np.sqrt(np.diff(self._x)**2 + np.diff(self._y)**2) / np.diff(self._time)
+        speed = np.sqrt(np.diff(self._x) ** 2 + np.diff(self._y) ** 2) / np.diff(
+            self._time
+        )
         t = self._time[:-1] + np.diff(self._time) / 2
         x = self._x[:-1] + np.diff(self._x) / 2
         y = self._y[:-1] + np.diff(self._y) / 2
