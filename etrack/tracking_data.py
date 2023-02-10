@@ -181,9 +181,19 @@ class TrackingData(object):
         """
         return self._x, self._y, self._time, self._quality
 
-    def speed(self):
-        """Returns the agent's speed as a function of time and position. The speed estimation is associated to the time/position between two sample points.
+    def speed(self, x=None, y=None, t=None):
+        """ Returns the agent's speed as a function of time and position. The speed estimation is associated to the time/position between two sample points. If any of the arguments is not provided, the function will use the x,y coordinates that are stored within the object, otherwise, if all are provided, the user-provided values will be used.
+        
+        Since the velocities are estimated from the difference between two sample points the returned velocities are assigned to positions and times between the respective sampled positions/times. 
 
+        Parameters
+        ----------
+        x: np.ndarray
+            The x-coordinates, defaults to None
+        y: np.ndarray
+            The y-coordinates, defaults to None
+        t: np.ndarray
+            The time vector, defaults to None
         Returns
         -------
         np.ndarray:
@@ -193,12 +203,14 @@ class TrackingData(object):
         tuple of np.ndarray
             The position
         """
-        speed = np.sqrt(np.diff(self._x) ** 2 + np.diff(self._y) ** 2) / np.diff(
-            self._time
-        )
-        t = self._time[:-1] + np.diff(self._time) / 2
-        x = self._x[:-1] + np.diff(self._x) / 2
-        y = self._y[:-1] + np.diff(self._y) / 2
+        if x is None or y is None or t is None:
+            x = self._x
+            y = self._y
+            t = self._time
+        speed = np.sqrt(np.diff(x)**2 + np.diff(y)**2) / np.diff(t)
+        t = t[:-1] + np.diff(t) / 2
+        x = x[:-1] + np.diff(x) / 2
+        y = y[:-1] + np.diff(y) / 2
 
         return t, speed, (x, y)
 
