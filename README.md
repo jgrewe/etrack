@@ -28,7 +28,7 @@ If  you leave away the ```--user``` the package will be installed system-wide.
 
 ## TrackingResults
 
-Is a class that wraps around the *.h5 files written by DeppLabCut
+Is a class that wraps around the *.h5 files written by DeepLabCut
 
 ## ImageMarker
 

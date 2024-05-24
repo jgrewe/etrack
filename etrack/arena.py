@@ -206,7 +206,10 @@ class Region(object):
         return indices
 
     def time_in_region(self, x, y, time, analysis_type=AnalysisType.Full):
-        """Returns the entering and leaving times at which the animal entered and left a region. In case the animal was not observed after entering this region (for example when hidden in a tube) the leaving time is the maximum time entry.
+        """Returns the entering and leaving times at which the animal entered
+        and left a region. In case the animal was not observed after entering
+        this region (for example when hidden in a tube) the leaving time is
+        the maximum time entry.
 
         Parameters
         ----------
@@ -223,6 +226,7 @@ class Region(object):
         -------
         _type_
             _description_
+
         """
         indices = self.points_in_region(x, y, analysis_type)
         if len(indices) == 0:

@@ -1,15 +1,25 @@
+import os
+from setuptools import setup
+import json
 from setuptools import setup
 
-NAME = "etrack"
-VERSION = 0.5
-AUTHOR = "Jan Grewe"
-CONTACT = "jan.grewe@g-node.org"
-CLASSIFIERS = "science"
-DESCRIPTION = "Efish tracking helpers for handling tracking data."
+# load info from nixio/info.json
+with open(os.path.join("etrack", "info.json")) as infofile:
+    infodict = json.load(infofile)
 
+
+NAME = "etrack"
+VERSION = infodict["VERSION"]
+AUTHOR = infodict["AUTHOR"]
+CONTACT = infodict["CONTACT"]
+BRIEF = infodict["BRIEF"]
+HOMEPAGE = infodict["HOMEPAGE"]
+CLASSIFIERS = "science"
 README = "README.md"
+
 with open(README) as f:
     description_text = f.read()
+DESCRIPTION = description_text
 
 packages = [
     "etrack", "etrack.io"

@@ -1,0 +1,10 @@
+{
+    "VERSION": "0.5.0",
+    "STATUS": "Release",
+    "RELEASE": "0.5.0 Release",
+    "AUTHOR": "Jan Grewe",
+    "COPYRIGHT": "2024, University of Tuebingen, Neuroethology, Jan Grewe",
+    "CONTACT": "jan.grewe@g-node.org",
+    "BRIEF": "Efish tracking helpers for handling tracking data.",
+    "HOMEPAGE": "https://github.com/G-Node/nixpy"
+}
