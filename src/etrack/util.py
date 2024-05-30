@@ -6,6 +6,14 @@ class Illumination(Enum):
 
 
 class RegionShape(Enum):
+    """
+    Enumeration representing the shape of a region.
+
+    Attributes:
+        Circular: Represents a circular region.
+        Rectangular: Represents a rectangular region.
+    """
+
     Circular = 0
     Rectangular = 1
 

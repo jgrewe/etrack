@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "etrack"
+dynamic = ["version"]
+dependencies = [
+  "nixio>=1.5",
+  "nixtrack",
+  "numpy",
+  "matplotlib",
+  "opencv-python",
+  "pandas",
+  "scikit-image",
+]
+requires-python = ">=3.6"
+authors = [
+  {name = "Jan Grewe", email = "jan.grewe@g-node.org"},
+]
+maintainers = [
+  {name = "Jan Grewe", email = "jan.grewe@g-node.org"},
+]
+description = "Goodies for working with tracking data of efishes."
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD-2-Clause",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Repository    = "https://github.com/bendalab/etrack"
+
+[tool.setuptools.dynamic]
+version = {attr = "etrack.info.VERSION"}
+
+[tool.pytest.ini_options]
+pythonpath = "src"

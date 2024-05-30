@@ -23,4 +23,3 @@ COPYRIGHT = infodict["COPYRIGHT"]
 CONTACT = infodict["CONTACT"]
 BRIEF = infodict["BRIEF"]
 HOMEPAGE = infodict["HOMEPAGE"]
-~

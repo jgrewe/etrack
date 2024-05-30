@@ -10,26 +10,52 @@ from IPython import embed
 
 
 class Region(object):
-    def __init__(
-        self,
-        origin,
-        extent,
-        inverted_y=True,
-        name="",
-        region_shape=RegionShape.Rectangular,
-        parent=None,
-    ) -> None:
+    """
+    Class representing a region (of interest). Regions can be either circular or rectangular. 
+    A Region can have a parent, i.e. it is contained inside a parent region. It can also have children.
+
+    Coordinates are given in absolute coordinates. The extent is treated depending on the shape. In case of a circular
+    shape, it is the radius and the origin is the center of the circle. Otherwise the origin is the bottom, or top-left corner, depending on the y-axis orientation, if inverted, then it is top-left. FIXME: check this
+    
+    """
+    def __init__(self, origin, extent, inverted_y=True, name="", region_shape=RegionShape.Rectangular, parent=None) -> None:
+        """Region constructor.
+        Parameters
+        ----------
+        origin : 2-tuple
+            x, and y coordinates
+        extent : scalar or 2-tuple, scalar only allowed to circular regions, 2-tuple for rectangular.
+        inverted_y : bool, optional
+            _description_, by default True
+        name : str, optional
+            _description_, by default ""
+        region_shape : _type_, optional
+            _description_, by default RegionShape.Rectangular
+        parent : _type_, optional
+            _description_, by default None
+
+        Returns
+        -------
+        _type_
+            _description_
+
+        Raises
+        ------
+        ValueError
+            Raises Value error when origin or extent are invalid
+        """
         logging.debug(
             f"etrack.Region: Create {str(region_shape)} region {name} with props origin {origin}, extent {extent} and parent {parent}"
         )
-        assert len(origin) == 2
-        self._origin = origin
-        self._extent = extent
-        self._inverted_y = inverted_y
+        if len(origin) != 2:
+            raise ValueError("Region: origin must be 2-tuple!")
+        self._parent = parent
         self._name = name
         self._shape_type = region_shape
+        self._origin = origin
         self._check_extent(extent)
-        self._parent = parent
+        self._extent = extent
+        self._inverted_y = inverted_y
 
     @staticmethod
     def circular_mask(width, height, center, radius):
@@ -62,7 +88,7 @@ class Region(object):
                 self._origin[0] + self._extent,
                 self._origin[1] + self._extent,
             )
-        return max_extent
+        return np.asarray(max_extent)
 
     @property
     def _min_extent(self):
@@ -73,7 +99,7 @@ class Region(object):
                 self._origin[0] - self._extent,
                 self._origin[1] - self._extent,
             )
-        return min_extent
+        return np.asarray(min_extent)
 
     @property
     def xmax(self):
@@ -122,7 +148,13 @@ class Region(object):
 
     def fits(self, other) -> bool:
         """
-        Returns true if the other region fits inside this region!
+        Checks if the given region fits into the current region.
+
+        Args:
+            other (Region): The region to check if it fits.
+
+        Returns:
+            bool: True if the given region fits into the current region, False otherwise.
         """
         assert isinstance(other, Region)
         does_fit = all(
@@ -146,10 +178,16 @@ class Region(object):
 
     @property
     def is_child(self):
+        """
+        Check if the current instance is a child.
+
+        Returns:
+            bool: True if the instance has a parent, False otherwise.
+        """
         return self._parent is not None
 
     def points_in_region(self, x, y, analysis_type=AnalysisType.Full):
-        """returns the indices of the points specified by 'x' and 'y' that fall into this region.
+        """Returns the indices of the points specified by 'x' and 'y' that fall into this region.
 
         Parameters
         ----------
@@ -210,23 +248,26 @@ class Region(object):
         and left a region. In case the animal was not observed after entering
         this region (for example when hidden in a tube) the leaving time is
         the maximum time entry.
+        Whether the full position, or only the x- or y-position should be considered 
+        is controlled with the analysis_type parameter.
 
         Parameters
         ----------
-        x : _type_
-            _description_
-        y : _type_
-            _description_
-        time : _type_
-            _description_
-        analysis_type : _type_, optional
-            _description_, by default AnalysisType.Full
+        x : np.ndarray
+        The animal's x-positions
+        y : np.ndarray
+            the animal's y-positions
+        time : np.ndarray
+            the time array
+        analysis_type : AnalysisType, optional
+            The type of analysis, by default AnalysisType.Full
 
         Returns
         -------
-        _type_
-            _description_
-
+        np.ndarray
+            The entering times
+        np.ndarray
+            The leaving times
         """
         indices = self.points_in_region(x, y, analysis_type)
         if len(indices) == 0:
@@ -253,30 +294,65 @@ class Region(object):
         return np.array(entering), np.array(leaving)
 
     def patch(self, **kwargs):
-        if "fc" not in kwargs:
-            kwargs["fc"] = None
-            kwargs["fill"] = False
-        if self._shape_type == RegionShape.Rectangular:
-            w = self.position[2]
-            h = self.position[3]
-            return patches.Rectangle(self._origin, w, h, **kwargs)
-        else:
-            return patches.Circle(self._origin, self._extent, **kwargs)
+            """
+            Create and return a matplotlib patch object based on the shape type of the arena.
+
+            Parameters:
+            - kwargs: Additional keyword arguments to customize the patch object.
+
+            Returns:
+            - A matplotlib patch object representing the arena shape.
+
+            If the 'fc' (facecolor) keyword argument is not provided, it will default to None.
+            If the 'fill' keyword argument is not provided, it will default to False.
+
+            For rectangular arenas, the patch object will be a Rectangle with width and height
+            based on the arena's position.
+            For circular arenas, the patch object will be a Circle with radius based on the
+            arena's extent.
+
+            Example usage:
+            ```
+            arena = Arena()
+            patch = arena.patch(fc='blue', fill=True)
+            ax.add_patch(patch)
+            ```
+            """
+            if "fc" not in kwargs:
+                kwargs["fc"] = None
+                kwargs["fill"] = False
+            if self._shape_type == RegionShape.Rectangular:
+                w = self.position[2]
+                h = self.position[3]
+                return patches.Rectangle(self._origin, w, h, **kwargs)
+            else:
+                return patches.Circle(self._origin, self._extent, **kwargs)
 
     def __repr__(self):
         return f"Region: '{self._name}' of {self._shape_type} shape."
 
 
 class Arena(Region):
-    def __init__(
-        self,
-        origin,
-        extent,
-        inverted_y=True,
-        name="",
-        arena_shape=RegionShape.Rectangular,
-        illumination=Illumination.Backlight,
-    ) -> None:
+    """
+    Class to represent the experimental arena. Arena is derived from Region and can be either rectangular or circular. 
+    An arena can not have a parent.
+    See Region for more details.
+    """
+    def __init__(self, origin, extent, inverted_y=True, name="", arena_shape=RegionShape.Rectangular, 
+                 illumination=Illumination.Backlight) -> None:
+        """ Construct a new Area with a given origin and extent.
+
+
+        Returns
+        -------
+        _type_
+            _description_
+
+        Raises
+        ------
+        ValueError
+            _description_
+        """
         super().__init__(origin, extent, inverted_y, name, arena_shape)
         self._illumination = illumination
         self.regions = {}
@@ -302,6 +378,16 @@ class Arena(Region):
         self.regions[name] = region
 
     def remove_region(self, name):
+        """
+        Remove a region from the arena.
+
+        Parameter:
+            name : str
+            The name of the region to remove.
+
+        Returns:
+            None
+        """
         if name in self.regions:
             self.regions.pop(name)
 
@@ -309,6 +395,17 @@ class Arena(Region):
         return f"Arena: '{self._name}' of {self._shape_type} shape."
 
     def plot(self, axis=None):
+        """
+        Plots the arena on the given axis.
+
+        Parameters
+        ----------
+        - axis (matplotlib.axes.Axes, optional): The axis on which to plot the arena. If not provided, a new figure and axis will be created.
+
+        Returns
+        -------
+        - matplotlib.axes.Axes: The axis on which the arena is plotted.
+        """
         if axis is None:
             fig = plt.figure()
             axis = fig.add_subplot(111)
@@ -336,8 +433,12 @@ class Arena(Region):
         Returns
         -------
         np.array
-            vector of the same size as x and y. Each entry is the region to which the position is assinged to. If the point is not assigned to a region, the entry will be empty.
+            vector of the same size as x and y. Each entry is the region to which the position is assigned to. If the point is not assigned to a region, the entry will be empty.
         """
+        if not isinstance(x, np.ndarray):
+            x = np.asarray(x)
+        if not isinstance(y, np.ndarray):
+            y = np.asarray(y)
         rv = np.empty(x.shape, dtype=str)
         for r in self.regions:
             indices = self.regions[r].points_in_region(x, y)
@@ -345,8 +446,24 @@ class Arena(Region):
         return rv
 
     def in_region(self, x, y):
+        """
+        Determines if the given coordinates (x, y) are within any of the defined regions in the arena.
+
+        Parameters
+        ----------
+        x : float
+        The x-coordinate of the point to check.
+        y : float
+        The y-coordinate of the point to check.
+
+        Returns
+        -------
+        dict: 
+        A dictionary containing the region names as keys and a list of indices of points within each region as values.
+        """
         tmp = {}
         for r in self.regions:
+            print(r)
             indices = self.regions[r].points_in_region(x, y)
             tmp[r] = indices
         return tmp
