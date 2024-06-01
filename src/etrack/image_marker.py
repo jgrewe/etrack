@@ -1,8 +1,11 @@
-import matplotlib.pyplot as plt 
-import cv2
+"""
+Module that defines the ImageMarker and MarkerTask classes to manually mark things in individual images.
+"""
 import os
+import cv2
 import sys
-from IPython import embed
+import matplotlib.pyplot as plt 
+
 
 class ImageMarker:
 

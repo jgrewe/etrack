@@ -1,3 +1,6 @@
+"""
+Classes to construct the arena in which the animals were tracked.
+"""
 import logging
 import numpy as np
 import matplotlib.pyplot as plt

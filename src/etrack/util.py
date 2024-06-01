@@ -1,3 +1,6 @@
+"""
+Module containing utility functions and enum classes.
+"""
 from enum import Enum
 
 class Illumination(Enum):

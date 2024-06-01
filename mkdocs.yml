@@ -1,0 +1,17 @@
+site_name: etrack
+
+repo_url: https://github.com/bendalab/etrack/
+
+edit_uri: ""
+
+site_author: Jan Grewe jan.grewe@g-node.org
+
+theme: readthedocs
+    
+nav:
+    - Home: 'index.md'
+    - 'User guide':
+        - 'etrack': 'etrack.md'
+        - 'TrackingData' : 'trackingdata.md'
+    - 'Code':
+        - API reference: 'api/index.html'

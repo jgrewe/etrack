@@ -1,3 +1,7 @@
+"""
+Module that defines the TrackingData class that wraps the position data for a given node/bodypart that has been tracked.
+"""
+
 import numpy as np
 
 

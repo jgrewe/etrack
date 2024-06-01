@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "etrack"
 dynamic = ["version"]
 dependencies = [
-  "nixio>=1.5",
+  "hdf5",
   "nixtrack",
   "numpy",
   "matplotlib",
