@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from skimage.draw import disk
-
 from .util import RegionShape, AnalysisType, Illumination
-from IPython import embed
 
 
 class Region(object):
@@ -119,7 +117,14 @@ class Region(object):
 
     @property
     def position(self):
-        """Returns the position and extent of the region as 4-tuple, (x, y, width, height)"""
+        """
+        Get the position of the arena.
+
+        Returns
+        -------
+        tuple
+            A tuple containing the x-coordinate, y-coordinate, width, and height of the arena.
+        """
         x = self._min_extent[0]
         y = self._min_extent[1]
         width = self._max_extent[0] - self._min_extent[0]
@@ -294,39 +299,39 @@ class Region(object):
         return np.array(entering), np.array(leaving)
 
     def patch(self, **kwargs):
-            """
-            Create and return a matplotlib patch object based on the shape type of the arena.
+        """
+        Create and return a matplotlib patch object based on the shape type of the arena.
 
-            Parameters:
-            - kwargs: Additional keyword arguments to customize the patch object.
+        Parameters:
+        - kwargs: Additional keyword arguments to customize the patch object.
 
-            Returns:
-            - A matplotlib patch object representing the arena shape.
+        Returns:
+        - A matplotlib patch object representing the arena shape.
 
-            If the 'fc' (facecolor) keyword argument is not provided, it will default to None.
-            If the 'fill' keyword argument is not provided, it will default to False.
+        If the 'fc' (facecolor) keyword argument is not provided, it will default to None.
+        If the 'fill' keyword argument is not provided, it will default to False.
 
-            For rectangular arenas, the patch object will be a Rectangle with width and height
-            based on the arena's position.
-            For circular arenas, the patch object will be a Circle with radius based on the
-            arena's extent.
+        For rectangular arenas, the patch object will be a Rectangle with width and height
+        based on the arena's position.
+        For circular arenas, the patch object will be a Circle with radius based on the
+        arena's extent.
 
-            Example usage:
-            ```
-            arena = Arena()
-            patch = arena.patch(fc='blue', fill=True)
-            ax.add_patch(patch)
-            ```
-            """
-            if "fc" not in kwargs:
-                kwargs["fc"] = None
-                kwargs["fill"] = False
-            if self._shape_type == RegionShape.Rectangular:
-                w = self.position[2]
-                h = self.position[3]
-                return patches.Rectangle(self._origin, w, h, **kwargs)
-            else:
-                return patches.Circle(self._origin, self._extent, **kwargs)
+        Example usage:
+        ```
+        arena = Arena()
+        patch = arena.patch(fc='blue', fill=True)
+        ax.add_patch(patch)
+        ```
+        """
+        if "fc" not in kwargs:
+            kwargs["fc"] = None
+            kwargs["fill"] = False
+        if self._shape_type == RegionShape.Rectangular:
+            w = self.position[2]
+            h = self.position[3]
+            return patches.Rectangle(self._origin, w, h, **kwargs)
+        else:
+            return patches.Circle(self._origin, self._extent, **kwargs)
 
     def __repr__(self):
         return f"Region: '{self._name}' of {self._shape_type} shape."

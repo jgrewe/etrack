@@ -6,23 +6,37 @@ class TrackingData(object):
     These data are the x, and y-positions, the time at which the agent was detected, and the quality associated with the position estimation.
     TrackingData contains these data and offers a few functions to work with it.
     Using the 'quality_threshold', 'temporal_limits', or the 'position_limits' data can be filtered (see filter_tracks function).
-    The 'interpolate' function allows to fill up the gaps that be result from filtering with linearly interpolated data points.
+    The 'interpolate' function allows to fill up the gaps that may result from filtering with linearly interpolated data points.
 
     More may follow...
     """
 
-    def __init__(
-        self,
-        x,
-        y,
-        time,
-        quality,
-        node="",
-        fps=None,
-        quality_threshold=None,
-        temporal_limits=None,
-        position_limits=None,
-    ) -> None:
+    def __init__(self, x, y, time, quality, node="", fps=None, 
+                 quality_threshold=None, temporal_limits=None, position_limits=None) -> None:
+        """
+        Initialize a TrackingData object.
+
+        Parameters
+        ----------
+        x : float
+            The x-coordinates of the tracking data.
+        y : float
+            The y-coordinates of the tracking data.
+        time : float
+            The time vector associated with the x-, and y-coordinates.
+        quality : float
+            The quality score associated with the position estimates.
+        node : str, optional
+            The node name associated with the data. Default is an empty string.
+        fps : float, optional
+            The frames per second of the tracking data. Default is None.
+        quality_threshold : float, optional
+            The quality threshold for the tracking data. Default is None.
+        temporal_limits : tuple, optional
+            The temporal limits for the tracking data. Default is None.
+        position_limits : tuple, optional
+            The position limits for the tracking data. Default is None.
+        """
         self._orgx = x
         self._orgy = y
         self._orgtime = time
@@ -61,11 +75,19 @@ class TrackingData(object):
 
     @property
     def quality_threshold(self):
+        """Property that holds the quality filter setting.
+        
+        Returns
+        -------
+            float : the quality threshold
+        """
         return self._threshold
 
     @quality_threshold.setter
     def quality_threshold(self, new_threshold):
-        """Setter of the quality threshold that should be applied when filterin the data. Setting this to None removes the quality filter.
+        """Setter of the quality threshold that should be applied when filtering the data. Setting this to None removes the quality filter.
+        
+        Data points that have a quality score below the given threshold are discarded.
 
         Parameters
         ----------
@@ -76,11 +98,18 @@ class TrackingData(object):
 
     @property
     def position_limits(self):
+        """
+        Get the position limits of the tracking data.
+
+        Returns:
+            tuple: A 4-tuple containing the start x, and y positions, width and height limits.
+        """
         return self._position_limits
 
     @position_limits.setter
     def position_limits(self, new_limits):
         """Sets the limits for the position filter. 'new_limits' must be a 4-tuple of the form (x0, y0, width, height). If None, the limits will be removed.
+        Data points outside the position limits are discarded.
 
         Parameters
         ----------
@@ -101,16 +130,30 @@ class TrackingData(object):
 
     @property
     def temporal_limits(self):
+        """
+        Get the temporal limits of the tracking data.
+
+        Returns:
+            tuple: A tuple containing the start and end time of the tracking data.
+        """
         return self._time_limits
 
     @temporal_limits.setter
     def temporal_limits(self, new_limits):
         """Limits for temporal filter. The limits must be a 2-tuple of start and end time. Setting this to None removes the filter.
-
+        Data points the are associated with times outside the limits are discarded.
+        
         Parameters
         ----------
         new_limits : 2-tuple
             The new limits in the form (start, end) given in seconds.
+        Returns
+        -------
+        None
+        
+        Raises
+        ------
+            ValueError if the limits are not valid.
         """
         if new_limits is not None and not (
             isinstance(new_limits, (tuple, list)) and len(new_limits) == 2
@@ -166,7 +209,7 @@ class TrackingData(object):
             self._quality = self._quality[indices]
 
     def positions(self):
-        """Returns the filtered data (if filters have been applied).
+        """Returns the filtered data (if filters have been applied, otherwise the original data).
 
         Returns
         -------
@@ -184,7 +227,7 @@ class TrackingData(object):
     def speed(self, x=None, y=None, t=None):
         """ Returns the agent's speed as a function of time and position. The speed estimation is associated to the time/position between two sample points. If any of the arguments is not provided, the function will use the x,y coordinates that are stored within the object, otherwise, if all are provided, the user-provided values will be used.
         
-        Since the velocities are estimated from the difference between two sample points the returned velocities are assigned to positions and times between the respective sampled positions/times. 
+        Since the velocities are estimated from the difference between two sample points the returned velocities and positions are assigned to positions and times between the respective sampled positions/times. 
 
         Parameters
         ----------
@@ -204,11 +247,12 @@ class TrackingData(object):
             The position
         """
         if x is None or y is None or t is None:
-            x = self._x
-            y = self._y
-            t = self._time
-        speed = np.sqrt(np.diff(x)**2 + np.diff(y)**2) / np.diff(t)
-        t = t[:-1] + np.diff(t) / 2
+            x = self._x.copy()
+            y = self._y.copy()
+            t = self._time.copy()
+        dt = np.diff(t)
+        speed = np.sqrt(np.diff(x)**2 + np.diff(y)**2) / dt
+        t = t[:-1] + dt / 2
         x = x[:-1] + np.diff(x) / 2
         y = y[:-1] + np.diff(y) / 2
 

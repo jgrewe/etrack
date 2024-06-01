@@ -22,11 +22,26 @@ class RegionShape(Enum):
 
 
 class AnalysisType(Enum):
+    """
+    Enumeration representing different types of analysis used when analyzing whether
+    positions fall into a given region.
+    
+    Possible types:
+        AnalysisType.Full: considers both, the x- and the y-coordinates
+        AnalysisType.CollapseX: consider only the x-coordinates
+        AnalysisType.CollapseY: consider only the y-coordinates
+    """
     Full = 0
     CollapseX = 1
     CollapseY = 2
 
     def __str__(self) -> str:
+        """
+        Returns the string representation of the analysis type.
+        
+        Returns:
+            str: The name of the analysis type.
+        """
         return self.name
 
 class PositionType(Enum):

@@ -7,7 +7,7 @@ from ..tracking_data import TrackingData
 
 
 class DLCReader(object):
-    
+    """Class that represents the tracking data stored in a DeepLabCut hdf5 file."""
     def __init__(self, results_file, crop=(0, 0)) -> None:
         """
         If the video data was cropped before tracking and the tracked positions are with respect to the cropped images, we may want to correct for this to convert the data back to absolute positions in the video frame.
