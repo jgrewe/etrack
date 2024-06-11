@@ -76,7 +76,8 @@ class TrackingData(object):
             min_count : int, optional
                 The minimum number of data points required for interpolation. If the number of data points is less than this value, interpolation will not be performed.
 
-        Returns:
+        Returns
+        -------
             x : ndarray
                 The interpolated x-coordinates.
             y : ndarray
@@ -86,7 +87,8 @@ class TrackingData(object):
             interpolated : ndarray
                 An array indicating whether each returned position is original (0) or interpolated (1).
 
-        Note:
+        Note
+        ----
             This method uses numpy's interpolation function to fill in missing values in the tracking data. It generates a new set of time values based on the specified start and end times, and then interpolates the x and y coordinates at those time points. The interpolated array is used to indicate whether each interpolated value is valid or not.
 
         """
@@ -168,7 +170,8 @@ class TrackingData(object):
         """
         Get the temporal limits of the tracking data.
 
-        Returns:
+        Returns
+        -------
             tuple: A tuple containing the start and end time of the tracking data.
         """
         return self._time_limits
@@ -182,6 +185,7 @@ class TrackingData(object):
         ----------
         new_limits : 2-tuple
             The new limits in the form (start, end) given in seconds.
+
         Returns
         -------
         None
@@ -294,6 +298,25 @@ class TrackingData(object):
         return t, speed, (x, y)
 
     def movement_direction(self, x=None, y=None, compass=True):
+        """
+        Calculate the movement direction based on the given x and y coordinates.
+
+        Parameters
+        ----------
+            x : ndarray, optional
+                The x-coordinates. If not provided, the instance variable _x will be used.
+            y : ndarray, optional
+                The y-coordinates. If not provided, the instance variable _y will be used.
+            compass : bool, optional
+                Whether to return the direction in compass degrees (0-360). 
+                If False, the direction will be returned in radians. Defaults to True.
+
+        Returns
+        -------
+            ndarray: 
+                The movement direction in degrees or radians, depending on the value of compass.
+
+        """
         if x is None:
             x = self._x
         if y is None:
@@ -310,5 +333,5 @@ class TrackingData(object):
         return direction
 
     def __repr__(self) -> str:
-        s = f"Tracking data of node '{self._node}'!"
+        s = f"Tracking data of node '{self._node}'."
         return s
