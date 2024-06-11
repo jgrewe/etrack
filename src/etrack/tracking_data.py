@@ -293,6 +293,22 @@ class TrackingData(object):
 
         return t, speed, (x, y)
 
+    def movement_direction(self, x=None, y=None, compass=True):
+        if x is None:
+            x = self._x
+        if y is None:
+            y = self._y
+        dx = np.diff(x)
+        dy = np.diff(y)
+        direction = np.arctan2(dy, dx)
+        if compass:
+            direction[direction < 0] = direction[direction < 0] + 2 * np.pi
+            direction += (0.5 * np.pi)
+            direction =  np.rad2deg(direction)
+            direction[direction > 360] -= 360
+
+        return direction
+
     def __repr__(self) -> str:
         s = f"Tracking data of node '{self._node}'!"
         return s

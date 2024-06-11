@@ -2,7 +2,6 @@ import pytest
 import numpy as np
 import etrack as et
 
-
 dataset = "test/2022lepto01_converted_2024.03.27_0.mp4.nix"
 
 @pytest.fixture
@@ -32,6 +31,31 @@ def test_interpolate(td):
     assert (len(i)) == len(xi) == len(yi)
 
     assert sum(i) == len(i) - len(td._x)
+
+
+def test_movementdirection(td):
+    direction = td.movement_direction(compass=False)
+    assert len(direction) == len(td._x) - 1 == len(td._y) -1
+    assert np.min(direction) >= -np.pi
+    assert np.max(direction) <= np.pi
+    
+    direction2 = td.movement_direction(compass=True)
+    assert len(direction2) == len(td._x) - 1 == len(td._y) -1
+    assert np.min(direction2) >= 0
+    assert np.max(direction2) <= 360
+
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(211, projection="polar")
+    ax2 = fig.add_subplot(212, projection="polar")
+    ax2.set_theta_zero_location('N')
+    ax2.set_theta_direction(-1)
+
+    ax.hist(direction)
+    ax2.hist(direction2 / 360*2*np.pi)
+    plt.show()
+    
+
 
 if __name__ == "__main__":
     pytest.main()
