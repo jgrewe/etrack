@@ -64,18 +64,49 @@ class TrackingData(object):
         return self._orgquality
 
     def interpolate(self, start_time=None, end_time=None, min_count=5):
+        """
+        Interpolates the tracking data to fill gaps in the tracking.
+
+        Parameters
+        ----------
+            start_time : float, optional
+                The start time for interpolation. If not provided, the first time value in the data will be used.
+            end_time : float, optional
+                The end time for interpolation. If not provided, the last time value in the data will be used.
+            min_count : int, optional
+                The minimum number of data points required for interpolation. If the number of data points is less than this value, interpolation will not be performed.
+
+        Returns:
+            x : ndarray
+                The interpolated x-coordinates.
+            y : ndarray
+                The interpolated y-coordinates.
+            time : ndarray
+                The interpolated time values.
+            interpolated : ndarray
+                An array indicating whether each returned position is original (0) or interpolated (1).
+
+        Note:
+            This method uses numpy's interpolation function to fill in missing values in the tracking data. It generates a new set of time values based on the specified start and end times, and then interpolates the x and y coordinates at those time points. The interpolated array is used to indicate whether each interpolated value is valid or not.
+
+        """
         if len(self._x) < min_count:
             print(
-                f"{self._node} data has less than {min_count} data points with sufficient quality ({len(self._x)})!"
+                f"TrackingData.interpolate: {self._node} data has less than {min_count} data points with sufficient quality ({len(self._x)})!"
             )
-            return None, None, None
+            return None, None, None, None
         start = self._time[0] if start_time is None else start_time
         end = self._time[-1] if end_time is None else end_time
-        time = np.arange(start, end, 1.0 / self._fps)
+        time = np.round(np.arange(start, end + 1.0/self._fps, 1.0 / self._fps), 4)
         x = np.interp(time, self._time, self._x)
         y = np.interp(time, self._time, self._y)
+        interpolated = np.ones_like(time, dtype=int)
+        tt = np.round(self._time, 4)
 
-        return x, y, time
+        for i, t in enumerate(time):
+            if t in tt:
+                interpolated[i] = 0
+        return x, y, time, interpolated
 
     @property
     def quality_threshold(self):
