@@ -108,6 +108,11 @@ class TrackingData(object):
         for i, t in enumerate(time):
             if t in tt:
                 interpolated[i] = 0
+        if x.shape != y.shape != time.shape != interpolated.shape:
+            from IPython import embed
+            print("x or y or time or interpolated are not the same size")
+            embed()
+            exit()
         return x, y, time, interpolated
 
     @property

@@ -28,7 +28,7 @@ def test_interpolate(td):
     assert yi[-1] == td._y[-1]
 
     assert len(i) >= len(td._time)
-    assert (len(i)) == len(xi) == len(yi)
+    assert len(i) == len(xi) == len(yi) == len(ti)
 
     assert sum(i) == len(i) - len(td._x)
 
