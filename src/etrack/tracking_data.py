@@ -4,6 +4,7 @@ Module that defines the TrackingData class that wraps the position data for a gi
 
 import numpy as np
 
+from .util import randianstocompass, Orientation
 
 class TrackingData(object):
     """Class that represents tracking data, i.e. positions of an agent tracked in an environment.
@@ -270,7 +271,7 @@ class TrackingData(object):
 
     def speed(self, x=None, y=None, t=None):
         """ Returns the agent's speed as a function of time and position. The speed estimation is associated to the time/position between two sample points. If any of the arguments is not provided, the function will use the x,y coordinates that are stored within the object, otherwise, if all are provided, the user-provided values will be used.
-        
+
         Since the velocities are estimated from the difference between two sample points the returned velocities and positions are assigned to positions and times between the respective sampled positions/times. 
 
         Parameters
@@ -302,7 +303,7 @@ class TrackingData(object):
 
         return t, speed, (x, y)
 
-    def movement_direction(self, x=None, y=None, compass=True):
+    def movement_direction(self, x=None, y=None, orientation=Orientation.Compass):
         """
         Calculate the movement direction based on the given x and y coordinates.
 
@@ -312,14 +313,14 @@ class TrackingData(object):
                 The x-coordinates. If not provided, the instance variable _x will be used.
             y : ndarray, optional
                 The y-coordinates. If not provided, the instance variable _y will be used.
-            compass : bool, optional
-                Whether to return the direction in compass degrees (0-360). 
-                If False, the direction will be returned in radians. Defaults to True.
+            orientation : Orientation, optional
+                Whether to return the direction in compass degrees (0-360) with zero heading north. 
+                If False, the direction will be returned in radians 0 headning right. Defaults to Orientation.Compass.
 
         Returns
         -------
             ndarray: 
-                The movement direction in degrees or radians, depending on the value of compass.
+                The movement direction in degrees or radians, depending on the value of orientation.
 
         """
         if x is None:
@@ -329,11 +330,8 @@ class TrackingData(object):
         dx = np.diff(x)
         dy = np.diff(y)
         direction = np.arctan2(dy, dx)
-        if compass:
-            direction[direction < 0] = direction[direction < 0] + 2 * np.pi
-            direction += (0.5 * np.pi)
-            direction =  np.rad2deg(direction)
-            direction[direction > 360] -= 360
+        if orientation == Orientation.Compass:
+            direction = randianstocompass(direction)
 
         return direction
 
