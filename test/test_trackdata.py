@@ -8,8 +8,8 @@ dataset = "test/2022lepto01_converted_2024.03.27_0.mp4.nix"
 def td():
     # Create a TrackingData object with some test data
     ntd = et.NixtrackData(dataset)
-    td = ntd.track_data(bodypart="snout")
-    return td
+    data = ntd.track_data(bodypart="snout")
+    return data
 
 
 def test_interpolate(td):
@@ -34,12 +34,12 @@ def test_interpolate(td):
 
 
 def test_movementdirection(td):
-    direction = td.movement_direction(compass=False)
+    direction = td.movement_direction(orientation=et.Orientation.Radians)
     assert len(direction) == len(td._x) - 1 == len(td._y) -1
     assert np.min(direction) >= -np.pi
     assert np.max(direction) <= np.pi
-    
-    direction2 = td.movement_direction(compass=True)
+
+    direction2 = td.movement_direction(orientation=et.Orientation.Compass)
     assert len(direction2) == len(td._x) - 1 == len(td._y) -1
     assert np.min(direction2) >= 0
     assert np.max(direction2) <= 360
@@ -54,7 +54,6 @@ def test_movementdirection(td):
     ax.hist(direction)
     ax2.hist(direction2 / 360*2*np.pi)
     plt.show()
-    
 
 
 if __name__ == "__main__":
