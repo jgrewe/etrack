@@ -5,13 +5,15 @@ import numbers as nb
 import nixtrack as nt
 
 from ..tracking_data import TrackingData
+from ..util import Orientation, YAxis, randianstocompass
+
 from IPython import embed
 
 
 class NixtrackData(object):
     """Wrapper around a nix data file that has been written accorind to the nixtrack model (https://github.com/bendalab/nixtrack)
     """
-    def __init__(self, filename, crop=(0, 0)) -> None:
+    def __init__(self, filename, crop_origin=(0, 0), yorientation=YAxis.Upright) -> None:
         """
         If the video data was cropped before tracking and the tracked positions are with respect to the cropped images, we may want to correct for this to convert the data back to absolute positions in the video frame.
 
@@ -28,11 +30,12 @@ class NixtrackData(object):
         """
         if not os.path.exists(filename):
             raise ValueError("File %s does not exist!" % filename)
-        if not isinstance(crop, tuple) or len(crop) < 2:
+        if not isinstance(crop_origin, tuple) or len(crop_origin) < 2:
             raise ValueError("Cropping info must be a 2-tuple of (x, y)")
         self._file_name = filename
-        self._crop = crop
+        self._crop = crop_origin
         self._dataset = nt.Dataset(self._file_name)
+        self._yorientation = yorientation
         if not self._dataset.is_open:
             raise ValueError(f"An error occurred opening file {self._file_name}! File is not open!")
 
@@ -129,6 +132,12 @@ class NixtrackData(object):
             fps = self._dataset.fps
 
         positions, time, _, nscore = self._dataset.positions(node=bp, axis_type=nt.AxisType.Time)
+        if self._yorientation == YAxis.Upright:
+            ymax = self._dataset.frame_height
+            if len(positions.shape) == 3:
+                positions[:, 1, :] = ymax - positions[:, 1, :]
+            else:
+                positions[:, 1] = ymax - positions[:, 1]
         valid = ~np.isnan(positions[:, 0])
         positions = positions[valid,:]
         time = time[valid]
