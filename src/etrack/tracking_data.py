@@ -105,7 +105,6 @@ class TrackingData(object):
         y = np.interp(time, self._time, self._y)
         interpolated = np.ones_like(time, dtype=int)
         tt = np.round(self._time, 4)
-
         for i, t in enumerate(time):
             if t in tt:
                 interpolated[i] = 0
