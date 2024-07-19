@@ -11,4 +11,4 @@ from .arena import Arena, Region
 from .tracking_data import TrackingData
 from .io.dlc_data import DLCReader
 from .io.nixtrack_data import NixtrackData
-from .util import RegionShape, AnalysisType, Orientation
+from .util import RegionShape, AnalysisType, Orientation, FileType

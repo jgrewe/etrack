@@ -1,9 +1,11 @@
-import matplotlib.pyplot as plt
-import pandas as pd 
-import numpy as np
-import numbers as nb
 import os 
+import pathlib
+import numpy as np
+import pandas as pd 
+import numbers as nb
+import matplotlib.pyplot as plt
 
+from .util import FileType
 """
 x_0 = 0
 width = 1230
@@ -21,9 +23,9 @@ def coordinate_transformation(position,x_0, y_0, x_factor, y_factor):
 
 class TrackingResult(object):
 
-    def __init__(self, results_file, x_0=0, y_0= 0, width_pixel=1230, height_pixel=1100, width_meter=0.81, height_meter=0.81) -> None:
+    def __init__(self, results_file, x_0=0, y_0= 0, width_pixel=1230, height_pixel=1100, width_meter=0.81, height_meter=0.81, filetype=FileType.Auto) -> None:
         super().__init__()
-        if not os.path.exists(results_file):
+        if not pathlib.Path.exists(results_file):
             raise ValueError("File %s does not exist!" % results_file)
         self._file_name = results_file
         self.x_0 = x_0
@@ -38,6 +40,12 @@ class TrackingResult(object):
         self.center = (np.round(self.x_0 + self.width_pix/2), np.round(self.y_0 + self.height_pix/2))
         self.center_meter = ((self.center[0] - self.x_0) * self.x_factor, (self.center[1] - self.y_0) * self.y_factor)
 
+        if filetype == FileType.Auto:
+            p = pathlib.PosixPath(self._file_name)
+            if p.suffix == ".nix":
+                
+            try:
+                
         self._data_frame = pd.read_hdf(results_file)
         self._level_shape = self._data_frame.columns.levshape
         self._scorer = self._data_frame.columns.levels[0].values

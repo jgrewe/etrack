@@ -3,7 +3,7 @@ import numpy as np
 import etrack as et
 from IPython import embed
 
-dataset = "test/2022lepto01_converted_2024.03.27_0.mp4.nix"
+dataset = "test/sleap_testfile.nix"
 
 
 @pytest.fixture

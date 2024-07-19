@@ -10,6 +10,14 @@ class Illumination(Enum):
     Incident = 1
 
 
+class FileType(Enum):
+    Deeplabcut = 0
+    Sleap = 1
+    Auto = 2
+
+    def __str__(self) -> str:
+        return self.name
+
 class RegionShape(Enum):
     """
     Enumeration representing the shape of a region.

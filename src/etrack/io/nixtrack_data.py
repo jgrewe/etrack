@@ -7,11 +7,10 @@ import nixtrack as nt
 from ..tracking_data import TrackingData
 from ..util import Orientation, YAxis, randianstocompass
 
-from IPython import embed
 
 
 class NixtrackData(object):
-    """Wrapper around a nix data file that has been written accorind to the nixtrack model (https://github.com/bendalab/nixtrack)
+    """Wrapper around a nix data file that has been written according to the nixtrack model (https://github.com/bendalab/nixtrack)
     """
     def __init__(self, filename, crop_origin=(0, 0), yorientation=YAxis.Upright) -> None:
         """
