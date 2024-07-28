@@ -42,10 +42,7 @@ class TrackingResult(object):
 
         if filetype == FileType.Auto:
             p = pathlib.PosixPath(self._file_name)
-            if p.suffix == ".nix":
-                
-            try:
-                
+                           
         self._data_frame = pd.read_hdf(results_file)
         self._level_shape = self._data_frame.columns.levshape
         self._scorer = self._data_frame.columns.levels[0].values
