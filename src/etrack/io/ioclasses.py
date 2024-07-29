@@ -17,7 +17,7 @@ class DataSource(ABC):
         super().__init__()
         p = pathlib.Path(filename)
         if not p.exists():
-            raise ValueError(f"File {filename} does not exist!")
+            raise FileExistsError(f"File {filename} does not exist!")
         if not isinstance(crop_origin, tuple) or len(crop_origin) < 2:
             raise ValueError("Cropping info must be a 2-tuple of (x, y)")
         self._filename = filename
@@ -28,8 +28,30 @@ class DataSource(ABC):
         self._positions = None
 
     @abstractmethod
-    def track(self, scorer=0, bodypart=0, framerate=30):
-        log.debug('return data')
+    def track_data(self, bodypart=0, fps=30, scorer=0, track=-1):
+        """
+        Retrieve tracking data for a specific body part and track.
+
+        Parameters
+        ----------
+            bodypart : int or str
+            Index or name of the body part to retrieve tracking data for.
+            fps : float
+            Frames per second of the tracking data. If not provided, it will be retrieved from the dataset (only NixtrackData).
+            scorer: int
+            Index of the scorer, defaults to 0, only supported for DLC data.
+            track : int or str
+            Index of the track to retrieve tracking data for. Defaults to -1, only supported for NicTrack data
+
+        Returns
+        -------
+            TrackingData: An object containing the x and y positions, time, score, body part name, and frames per second.
+
+        Raises
+        ------
+            ValueError: If the body part or track is not valid.
+        """
+        raise NotImplementedError("Needs to be implemented by subclass")
 
     @property
     def filename(self) -> str:
@@ -46,12 +68,37 @@ class DataSource(ABC):
     @property
     def bodyparts(self):
         return self._bodyparts
+
+    @property
+    def fps(self):
+        """Property that holds frames per second of the original video.
+        Returns
+        -------
+        int : the frames of second
+        """
+        raise NotImplementedError("Needs to be implemented by subclass")
+
+    def _correct_cropping(self, orgx, orgy):
+        """
+        Corrects the coordinates based on the cropping values, If it cropping was done during tracking.
+
+        Args:
+            orgx (int): The original x-coordinate.
+            orgy (int): The original y-coordinate.
+
+        Returns:
+            tuple: A tuple containing the corrected x and y coordinates.
+        """
+        x = orgx + self._crop[0]
+        y = orgy + self._crop[1]
+        return x, y
+
     
 
 class DLCReader(DataSource):
     """Class that represents the tracking data stored in a DeepLabCut hdf5 file."""
 
-    def __init__(self, results_file, crop_origin, yorientation) -> None:
+    def __init__(self, filename, crop_origin, yorientation) -> None:
         """
         If the video data was cropped before tracking and the tracked positions are with respect to the cropped images, we may want to correct for this to convert the data back to absolute positions in the video frame.
 
@@ -64,7 +111,7 @@ class DLCReader(DataSource):
         ------
         ValueError if crop_origin value is not a 2-tuple
         """
-        super().__init__(results_file, crop_origin, yorientation)
+        super().__init__(filename, crop_origin, yorientation)
         self._load()
 
     def _load(self):
@@ -78,12 +125,13 @@ class DLCReader(DataSource):
     def dataframe(self):
         return self._data_frame
 
-    def _correct_cropping(self, orgx, orgy):
-        x = orgx + self._crop[0]
-        y = orgy + self._crop[1]
-        return x, y
+    @property
+    def fps(self):
+        Warning("DLC does not know about the framerate of the video recording.")
 
-    def track(self, scorer=0, bodypart=0, framerate=30):
+        return 0
+
+    def track_data(self, bodypart=0, fps=30, scorer=0, track=-1):
         if isinstance(scorer, nb.Number):
             sc = self._scorer[scorer]
         elif isinstance(scorer, str) and scorer in self._scorer:
@@ -102,12 +150,12 @@ class DLCReader(DataSource):
         x, y = self._correct_cropping(x, y)
         l = np.asarray(self._data_frame[sc][bp]["likelihood"] if "likelihood" in self._positions else [])
 
-        time = np.arange(len(x))/framerate
+        time = np.arange(len(x))/fps
 
-        return TrackingData(x, y, time, l, bp, fps=framerate)
+        return TrackingData(x, y, time, l, bp, fps=fps)
 
 
-class NixtrackReader(object):
+class NixtrackReader(DataSource):
     """Wrapper around a nix data file that has been written according to the nixtrack model (https://github.com/bendalab/nixtrack)
     """
     def __init__(self, filename, crop_origin=(0, 0), yorientation=YAxis.Upright) -> None:
@@ -125,26 +173,13 @@ class NixtrackReader(object):
         ------
         ValueError if crop value is not a 2-tuple
         """
-        if not os.path.exists(filename):
-            raise ValueError("File %s does not exist!" % filename)
-        if not isinstance(crop_origin, tuple) or len(crop_origin) < 2:
-            raise ValueError("Cropping info must be a 2-tuple of (x, y)")
-        self._file_name = filename
-        self._crop = crop_origin
-        self._dataset = nt.Dataset(self._file_name)
-        self._yorientation = yorientation
-        if not self._dataset.is_open:
-            raise ValueError(f"An error occurred opening file {self._file_name}! File is not open!")
+        super().__init__(filename, crop_origin, yorientation)
+        self._load()
 
-    @property
-    def filename(self):
-        """
-        Returns the name of the file associated with the NixtrackData object.
-        
-        Returns:
-            str: The name of the file.
-        """
-        return self._file_name
+    def _load(self):
+        self._dataset = nt.Dataset(self._filename)
+        if not self._dataset.is_open:
+            raise ValueError(f"An error occurred opening file {self._filename}! File is not open!")
 
     @property
     def bodyparts(self):
@@ -155,29 +190,9 @@ class NixtrackReader(object):
             list: A list of bodyparts.
         """
         return self._dataset.nodes
-    
-    def _correct_cropping(self, orgx, orgy):
-        """
-        Corrects the coordinates based on the cropping values, If it cropping was done during tracking.
-
-        Args:
-            orgx (int): The original x-coordinate.
-            orgy (int): The original y-coordinate.
-
-        Returns:
-            tuple: A tuple containing the corrected x and y coordinates.
-        """
-        x = orgx + self._crop[0]
-        y = orgy + self._crop[1]
-        return x, y
 
     @property
     def fps(self):
-        """Property that holds frames per second of the original video.
-        Returns
-        -------
-        int : the frames of second
-        """
         return self._dataset.fps
 
     @property
@@ -190,27 +205,7 @@ class NixtrackReader(object):
         """
         return [t[0] for t in self._dataset.tracks]
 
-    def track_data(self, bodypart=0, track=-1, fps=None):
-        """
-        Retrieve tracking data for a specific body part and track.
-
-        Parameters
-        ----------
-            bodypart : int or str
-            Index or name of the body part to retrieve tracking data for.
-            track : int or str
-            Index of the track to retrieve tracking data for.
-            fps : float
-            Frames per second of the tracking data. If not provided, it will be retrieved from the dataset.
-
-        Returns
-        -------
-            TrackingData: An object containing the x and y positions, time, score, body part name, and frames per second.
-
-        Raises
-        ------
-            ValueError: If the body part or track is not valid.
-        """
+    def track_data(self, bodypart=0, fps=None, scorer=None, track=-1):
         if isinstance(bodypart, nb.Number):
             bp = self.bodyparts[bodypart]
         elif isinstance(bodypart, (str)) and bodypart in self.bodyparts:
