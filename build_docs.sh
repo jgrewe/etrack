@@ -31,7 +31,7 @@ if command -v mkdocs >/dev/null; then
     echo
 
     cd "$PACKAGEROOT"
-    cp .mkdocs.yml mkdocs-tmp.yml
+    cp mkdocs.yml mkdocs-tmp.yml
     if $HAS_COVER; then
 	echo "        - Coverage: 'cover/index.html'" >> mkdocs-tmp.yml
     fi

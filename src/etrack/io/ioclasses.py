@@ -11,9 +11,27 @@ from ..util import Orientation, YAxis, randianstocompass
 from ..tracking_data import TrackingData
 
 class DataSource(ABC):
-
+    """Abstract baseclass of specific reader classes."""
     def __init__(self, filename:str, crop_origin: tuple[int, int]=(0, 0),
                  yorientation: YAxis = YAxis.Upright) -> None:
+        """Read the tracking data stored in a supported source. If the video data has been cropped for tracking, e.g. in DeelpLabCut, the crop origin can be provided to convert the cropped coordinates back to 'global' coordinates valid in the source video. In the imaging community it is common to denote top-left point in an image with the (0,0) position. In normal plotting, this results in an inverted y-axis. Whether or not the y-coordinate should be swapped, can be given by the yorientation parameter.
+
+        Parameters
+        ----------
+        filename : str
+            The path/name of the file.
+        crop_origin : tuple[int, int], optional
+            the cropping offset, by default (0, 0), i.e. no cropping during tracking.
+        yorientation : YAxis, optional
+            Controls whether or not the y-axis should be inverted, by default YAxis.Upright
+
+        Raises
+        ------
+        FileExistsError
+            When the file cannot be found
+        ValueError
+            If the crop_origin is invalid.
+        """
         super().__init__()
         p = pathlib.Path(filename)
         if not p.exists():
@@ -55,18 +73,46 @@ class DataSource(ABC):
 
     @property
     def filename(self) -> str:
+        """The name of the opened file.
+
+        Returns
+        -------
+        str
+            The filename
+        """
         return self._filename
 
     @property
     def orientation(self) -> YAxis:
+        """The selected y-orientiation/
+
+        Returns
+        -------
+        YAxis
+            Either YAxis.Inverted or YAxis.Upright
+        """
         return self._yorientation
 
     @property
-    def scorer(self):
+    def scorer(self) -> str:
+        """Only supported for DeepLabCut files. The scorer, i.e. the network that was used to generate the data.
+
+        Returns
+        -------
+        str:
+            The scorer name, or None, if not known.
+        """
         return self._scorer
 
     @property
-    def bodyparts(self):
+    def bodyparts(self) -> list[str]:
+        """The tracked body parts or nodes.
+
+        Returns
+        -------
+        list[str]
+            The tracked node names.
+        """
         return self._bodyparts
 
     @property
@@ -93,7 +139,6 @@ class DataSource(ABC):
         y = orgy + self._crop[1]
         return x, y
 
-    
 
 class DLCReader(DataSource):
     """Class that represents the tracking data stored in a DeepLabCut hdf5 file."""
@@ -126,7 +171,7 @@ class DLCReader(DataSource):
         return self._data_frame
 
     @property
-    def fps(self):
+    def fps(self) -> int:
         Warning("DLC does not know about the framerate of the video recording.")
 
         return 0
@@ -183,12 +228,6 @@ class NixtrackReader(DataSource):
 
     @property
     def bodyparts(self):
-        """
-        Returns the bodyparts of the dataset.
-
-        Returns:
-            list: A list of bodyparts.
-        """
         return self._dataset.nodes
 
     @property
