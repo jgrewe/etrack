@@ -2,9 +2,9 @@ import pathlib
 import etrack as et
 import matplotlib.pyplot as plt
 
-dataset = pathlib.Path.cwd().joinpath(pathlib.PosixPath("test/2022lepto01_converted_2024.03.27_0.mp4.nix"))
-ntd = et.NixtrackData(str(dataset))
-td = ntd.track_data(bodypart="snout")
+dataset = pathlib.Path.cwd().joinpath(pathlib.PosixPath("test/sleap_testfile.nix"))
+d = et.read_dataset(str(dataset), et.FileType.Sleap)
+td = d.track_data(bodypart="snout")
 
 x, y, time, score = td.positions()
 

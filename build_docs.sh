@@ -1,5 +1,10 @@
 #!/bin/bash
 
+PACKAGE="etrack"
+PACKAGESRC="src/$PACKAGE"
+PACKAGEROOT="$(dirname "$(realpath "$0")")"
+BUILDROOT="$PACKAGEROOT/site"
+
 die() { echo "ERROR: $*"; exit 2; }
 warn() { echo "WARNING: $*"; }
 
@@ -8,10 +13,10 @@ for cmd in mkdocs pdoc3 genbadge; do
         warn "missing $cmd: run \`pip install $cmd\`"
 done
 
-PACKAGE="etrack"
-PACKAGESRC="src/$PACKAGE"
-PACKAGEROOT="$(dirname "$(realpath "$0")")"
-BUILDROOT="$PACKAGEROOT/site"
+# build intro figures
+cd docs
+python intro_figures.py
+cd ..
 
 # check for code coverage report:
 # need to call nosetest with --with-coverage --cover-html --cover-xml

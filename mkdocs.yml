@@ -9,9 +9,9 @@ site_author: Jan Grewe jan.grewe@g-node.org
 theme: readthedocs
     
 nav:
-    - Home: 'index.md'
-    - 'User guide':
-        - 'etrack': 'etrack.md'
+    - Home: 'introduction.md'
+    - 'Getting started':
+        - 'etrack': 'introduction.md'
         - 'TrackingData' : 'trackingdata.md'
     - 'Code':
         - API reference: 'api/index.html'

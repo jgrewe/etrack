@@ -26,10 +26,10 @@ The ```-e``` installs the package in an *editable* model that you do not need to
 
 If  you leave away the ```--user``` the package will be installed system-wide.
 
-## TrackingResults
+<!-- ## TrackingResults
 
 Is a class that wraps around the *.h5 files written by DeepLabCut
 
 ## ImageMarker
 
-Class that allows for creating MarkerTasks to get specific positions in a video.
+Class that allows for creating MarkerTasks to get specific positions in a video. -->
