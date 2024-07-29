@@ -49,13 +49,13 @@ def read_dataset(filename: str, filetype:FileType, crop_origin: tuple[int, int]=
         if the file does not exist or cannot be read.
     """
     p = pathlib.Path(filename)
-    logging.debug(f"Open file {filename} with filetype {filetype.__str__()}")
+    logging.debug("Open file %s with filetype %s" % (filename, filetype.__str__()))
     if not pathlib.Path.exists(p):
-        logging.error(f"File {filename} does not exist!")
+        logging.error("File %s does not exist!" % filename)
         raise ValueError(f"File {filename} does not exist!")
     if filetype == FileType.Deeplabcut:
         return DLCReader(filename, crop_origin, yorientation=yorientation)
     elif filetype == FileType.Sleap:
-        return NixtrackData(filename, crop_origin=crop_origin, yorientation=yorientation)
+        return NixtrackReader(filename, crop_origin=crop_origin, yorientation=yorientation)
     
     pass
