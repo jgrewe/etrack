@@ -12,13 +12,13 @@ from .image_marker import ImageMarker, MarkerTask
 from .tracking_result import TrackingResult, coordinate_transformation
 from .arena import Arena, Region
 from .tracking_data import TrackingData
-from .io.dlc_data import DLCReader
-from .io.nixtrack_data import NixtrackData
+from .io.ioclasses import DLCReader
+from .io.ioclasses import NixtrackReader
 from .util import RegionShape, AnalysisType, Orientation, FileType, YAxis
 
 
 def read_dataset(filename: str, filetype:FileType, crop_origin: tuple[int, int]=(0, 0),
-         yorientation: YAxis = YAxis.Upright):
+                 yorientation: YAxis = YAxis.Upright):
     """Open a file that contains tracking data. Supported file types are currently 
     nixtrack files e.g. written with the nix output of SLEAP (https://sleap.ai) or
     hdf *.h5 files written by DeepLabCut (https://github.com/deeplabcut).
@@ -54,8 +54,8 @@ def read_dataset(filename: str, filetype:FileType, crop_origin: tuple[int, int]=
         logging.error(f"File {filename} does not exist!")
         raise ValueError(f"File {filename} does not exist!")
     if filetype == FileType.Deeplabcut:
-        return DLCReader(filename)
+        return DLCReader(filename, crop_origin, yorientation=yorientation)
     elif filetype == FileType.Sleap:
-        return NixtrackData(filename)
+        return NixtrackData(filename, crop_origin=crop_origin, yorientation=yorientation)
     
     pass
